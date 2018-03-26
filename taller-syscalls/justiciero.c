@@ -30,7 +30,7 @@ int main(int argc, char* argv[]) {
 	} else {
 		/* S'olo se ejecuta en el Padre */
 		while(1) {
-			if (wait(&status) < 0) { perror("waitpid"); break; }
+			if (wait(&status) < 0) { /*perror("waitpid");*/ break; }
 			if (WIFEXITED(status)) break; /* Proceso terminado */
 			if(ptrace(PTRACE_PEEKUSER, child, 8 * RAX, NULL) < 0){
 				if(ptrace(PTRACE_PEEKUSER, child, 8*ORIG_RAX, NULL) == SYS_kill){
