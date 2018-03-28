@@ -10,11 +10,11 @@
 int
 main(int argc, char **argv)
 {
-	char *buf;
+	char *buf = NULL;
 	struct sockaddr_in name;
-	size_t bufsiz;
-	ssize_t w;
+	ssize_t w, len, r;
 	int s;
+	len = 0;
 
 	if (argc != 2) {
 		fprintf(stderr, "uso: %s ip\n", argv[0]);
@@ -26,7 +26,6 @@ main(int argc, char **argv)
 		exit(1);
 	}
 
-	memset(&name, 0, sizeof(name));
 	if (!inet_aton(argv[1], &name.sin_addr)) {
 		fprintf(stderr, "%s: ip desconocida\n", argv[1]);
 		exit(1);
@@ -38,17 +37,17 @@ main(int argc, char **argv)
 		exit(1);
 	}
 
-	buf = NULL;
-	bufsiz = 0;
 	for (;;) {
 		printf("[%s]> ", argv[1]);
-		if ((w = getline(&buf, &bufsiz, stdin)) == -1) {
+
+		if ((w = getline(&buf, &len, stdin)) == -1) {
 			if (!feof(stdin))
 				perror("getline");
 			break;
 		}
 		if (strncmp(buf, ENDMSG, w) == 0)
 			break;
+
 		if (send(s, buf, w, 0) == -1) {
 			perror("send");
 			exit(1);

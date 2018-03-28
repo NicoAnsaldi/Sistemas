@@ -19,32 +19,21 @@ run(const char ***progs, size_t count)
 		goto end;
 	}
 
-	/* ----------------- */
-	/* TODO: crear pipes */
-	/* ----------------- */
+	// TODO: crear pipes ANTES de crear los procesos
+	// Pensar cuantos pipes necesito.
 
 	for (i = 0; i < count; i++) {
-		if ((cur = fork()) == -1) {
-			fprintf(stderr, "fork [%zu]", i);
-			perror("");
-			r = -1;
-			goto end;
-		}
-		if (cur == 0) {
 
-			/* ------------------------------------ */
-			/* TODO: redireccionar los fd adecuados */
-			/* ------------------------------------ */
+		//TODO: Crea *count* procesos
 
-			if (execvp(progs[i][0], progs[i]) == -1) {
-				perror("execvp");
-				return -1;
-			}
-			exit(1); /* no alcanzable */
-		} else {
-			children[i] = cur;
-		}
+		//TODO: Guardar el PID del proceso hijo en children[i]
+
+		//TODO: Para cada proceso hijo:
+			//1. Redireccionar los file descriptors adecuados al proceso
+			//2- Ejecutar el programa correspondiente
 	}
+
+	//El padre espera a que terminen todos los procesos hijos que ejecutan los programas
 	for (i = 0; i < count; i++) {
 		if (waitpid(children[i], &status, 0) == -1) {
 			perror("waitpid");
@@ -59,7 +48,6 @@ run(const char ***progs, size_t count)
 	}
 	r = 0;
 
-end:
 	free(children);
 	free(pipes);
 
