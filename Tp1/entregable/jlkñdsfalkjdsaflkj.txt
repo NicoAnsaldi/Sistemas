@@ -1,0 +1,15 @@
+entro un add, clave:19
+entro un add, clave:19
+paso un add
+va a salir un add
+entro un add, clave:paso un add
+entro un add, clave:va a salir un add
+19
+paso un add
+19va a salir un add
+
+paso un add
+va a salir un add
+entro un add, clave:19
+paso un add
+va a salir un add
