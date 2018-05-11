@@ -5,7 +5,6 @@
 #include <cassert>
 #include <cstring>
 #include <iostream>
-#include <cstdlib>
 
 Ext2FS::Ext2FS(HDD & disk, unsigned char pnumber) : _hdd(disk), _partition_number(pnumber)
 {
@@ -281,7 +280,25 @@ unsigned int Ext2FS::blockaddr2sector(unsigned int block)
  */
 struct Ext2FSInode * Ext2FS::load_inode(unsigned int inode_number)
 {
-	//TODO: Ejercicio 2
+	unsigned int block_size = 1024 << _superblock->log_block_size;	
+	unsigned int indiceGrupo = blockgroup_for_inode(inode_number); //TODO: Ejercicio 2
+	unsigned int indiceInode = blockgroup_inode_index(inode_number);
+
+	struct Ext2FSBlockGroupDescriptor * grupo = block_group(indiceGrupo);
+
+	unsigned int inodos_por_bloque = block_size /sizeof(Ext2FSInode);
+
+	unsigned int numero_de_bloque = indiceInode / inodos_por_bloque;
+
+	unsigned int indice_del_inodo_en_bloque = indiceInode % inodos_por_bloque;
+
+	unsigned char buffer[block_size]; 
+
+	read(grupo->inode_table + numero_de_bloque, buffer);
+
+	Ext2FSInode* res = new((Ext2FSInode) buffer[indice_del_inodo_en_bloque* sizeof(Ext2FSInode)]);	
+
+	return res;
 
 }
 
@@ -289,7 +306,34 @@ unsigned int Ext2FS::get_block_address(struct Ext2FSInode * inode, unsigned int 
 {
 
 	//TODO: Ejercicio 1
-
+	//HACER SÓLO HASTA SEGUNDA INDIRECCIÓN
+	unsigned int block_size = 1024 << _superblock->log_block_size;	
+	unsigned int lba_por_bloque = block_size/sizeof(unsigned int);
+	unsigned int bufferaux[block_size];	
+	if(block_number < 12){
+		return inode -> blocks[block_number];
+	}else{
+		block_number -= 12;
+		if(block_number < lba_por_bloque){
+			unsigned char buffer[block_size];
+			read_block(inode->blocks[12], &buffer);
+			bufferaux = (unsigned int ) buffer;
+			return bufferaux[block_number];
+		}else{
+			block_number -= lba_por_bloque;
+			int contador = block_number/lba_por_bloque;
+			block_number = block_number % lba_por_bloque;
+			if(contador > lba_por_bloque){// puede ser >=
+				exit(-1);//tercera indirecccion;
+			}
+			unsigned char buffer1[block_size];
+			read_block(inode->blocks[13], &buffer1 );
+			bufferaux = (unsigned int ) buffer1;
+			read_block(bufferaux[contador], &buffer1);
+			bufferaux = (unsigned int) buffer1;
+			return bufferaux[block_number];
+		}
+	}
 }
 
 void Ext2FS::read_block(unsigned int block_address, unsigned char * buffer)

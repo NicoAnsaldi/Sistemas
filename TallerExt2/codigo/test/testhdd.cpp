@@ -1,6 +1,5 @@
 #include <iostream>
 #include <assert.h>
-#include <cstring>
 
 #include "hdd.h"
 #include "mbr.h"
@@ -58,16 +57,7 @@ int main(int argc, char ** argv)
 	//Esto lo pueden comentar. Es sólo para ver si el FS está bien
 	test_block_groups(fs);
 
-	unsigned char caracteres[9];
-	fd_t fileDesc = fs->open("/grupos/g1/nota.txt", "cualquiera");
-	fs->seek(fileDesc,13999);
-	fs->read(fileDesc,caracteres,8);
-	caracteres[8]=0;
+	//TODO: Completar el código del último ejercicio acá
 
-  if (caracteres[7]==1) {
-    cout << "REPROBADO!" << endl;
-  } else {
-  	cout << "APROBADO!" << endl;
-  }
 	return 0;
 }
