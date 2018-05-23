@@ -8,7 +8,7 @@
 #include <atomic>
 #include <mpi.h>
 #include <map>
-
+//esto es el la informacion del nodo(cantidad fija) (creo, agregado por Alicia)
 int total_nodes, mpi_rank;
 Block *last_block_in_chain;
 map<string,Block> node_blocks;
@@ -85,11 +85,19 @@ bool validate_block_for_chain(const Block *rBlock, const MPI_Status *status){
   return false;
 }
 
-
+//int MPI_Send(const void *buf, int count, MPI_Datatype datatype, int dest, int tag, MPI_Comm comm)
 //Envia el bloque minado a todos los nodos
 void broadcast_block(const Block *block){
-  //No enviar a mí mismo
+  //No enviar a mí mismo  
   //TODO: Completar
+  unsigned int cantidad_de_nodos_a_los_que_mensajee = 1; 
+  unsigned int cant_de_nodos_yo_exclusive = total_nodes -1;
+  while (cantidad_de_nodos_a_los_que_mensajee < cant_de_nodos_yo_exclusive){
+    unsigned int rank_a_mensajear = (mpi_rank + cantidad_de_nodos_a_los_que_mensajee) % total_nodes;
+    MPI_Send(&block, sizeof(block), *MPI_BLOCK,rank_a_mensajear,TAG_NEW_BLOCK,MPI_COMM_WORLD);
+    cantidad_de_nodos_a_los_que_mensajee++;
+  }//no a mi mismo
+  //idea: va a enviar en circulo a todos los nodos que le siguen. (Mesa redonda)
 }
 
 //Proof of work
@@ -156,18 +164,46 @@ int node(){
   last_block_in_chain->created_at = static_cast<unsigned long int> (time(NULL));
   memset(last_block_in_chain->previous_block_hash,0,HASH_SIZE);
 
-  //TODO: Crear thread para minar
+  //TODO: Crear thread para minar //Punto 2
+
+  pthread_t thread[2]; //se supone que la thread mina mientras esto escucha?y la otra escucha  
+ 
+    pthread_create(&thread[0], NULL, proof_of_work, NULL );//me parece que el parametro que se le pasa a prood_of_work no importa;
+    pthread_join(thread[0], NULL);
+
+
+  //  pthread_t thread[realnt];
+  //int tid;  
+  //for(tid = 0; tid <  realnt; tid++  ){
+  //  pthread_create(&thread[tid], NULL, maxola, &aux );//le pasa a max el struct Hashcontador, con nuestro hash y la thread    
+  //}
+  //for (tid = 0; tid < realnt; ++tid){
+  //      pthread_join(thread[tid], NULL);
+  //  }Ejemplo sacado de tp1 
+
+
+
 
   while(true){
 
+
+
       //TODO: Recibir mensajes de otros nodos
-
-      //TODO: Si es un mensaje de nuevo bloque, llamar a la función
-      // validate_block_for_chain con el bloque recibido y el estado de MPI
-
-      //TODO: Si es un mensaje de pedido de cadena,
-      //responderlo enviando los bloques correspondientes
-
+    Block* blockr;
+    char* hash_hex_str[32];
+    MPI_Status status;
+    //TODO: Si es un mensaje de nuevo bloque, llamar a la función
+    // validate_block_for_chain con el bloque recibido y el estado de MPI
+    if( MPI_Recv(blockr, sizeof(MPI_BLOCK), *MPI_BLOCK, MPI_ANY_SOURCE, TAG_NEW_BLOCK, MPI_COMM_WORLD, &status)){
+      validate_block_for_chain(blockr, &status);
+    }
+    //TODO: Si es un mensaje de pedido de cadena,
+    //responderlo enviando los bloques correspondientes
+    if(MPI_Recv(hash_hex_str, sizeof(hash_hex_str), MPI_CHAR, MPI_ANY_SOURCE, TAG_CHAIN_HASH, MPI_COMM_WORLD, &status)){
+      //armo lista de validation_block blockes y la mando
+     // MPI_Send(lista, sizeof(lista), ,mpi_rank, TAG_CHAIN_RESPONSE, MPI_COMM_WORLD);
+    }
+   //MPI_ANI_SOURCE recibe mensajes desde cualquier emisor, no se si esta bien, pero bueno.
   }
 
   delete last_block_in_chain;
