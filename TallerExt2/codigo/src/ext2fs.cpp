@@ -351,6 +351,8 @@ struct Ext2FSInode * Ext2FS::get_file_inode_from_dir_inode(struct Ext2FSInode * 
 	//std::cerr << *from << std::endl;
 	assert(INODE_ISDIR(from));
 
+	
+
 	//TODO: Ejercicio 3
 
 }
