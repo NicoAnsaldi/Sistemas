@@ -21,4 +21,4 @@ clean:
 new: clean all
 
 run: blockchain
-	mpirun -np 2 ./blockchain
+	mpirun -np 20 ./blockchain
